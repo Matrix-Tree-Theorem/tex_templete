@@ -1,0 +1,630 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{myjapanese}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    コマンド補助ツール
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% expl3を使用
+\RequirePackage{l3keys2e}
+\RequirePackage{etoolbox}
+\RequirePackage{xparse}
+\RequirePackage{pgffor}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    パッケージオプション
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\if@myjapanese@colored
+\DeclareOption{colorless}{}
+\DeclareOption{colored}{\@myjapanese@coloredtrue}
+% 未定義のパッケージオプションを指定したとき
+\DeclareOption*{%
+  % ログに出力する
+  \PackageInfo{myjapanese}{"\CurrentOption" is not used}%
+}
+\ExecuteOptions{colorless}
+\ProcessOptions\relax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    便利
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ファイル分割
+\RequirePackage{docmute}
+% ファイルのパスを省略
+\RequirePackage{import}
+% ダミーテキスト
+\RequirePackage{lipsum,bxjalipsum}
+% レイアウト確認ページを出力
+\RequirePackage{layout}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    文字/フォント
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 文字を装飾
+\RequirePackage{lua-ul}
+% 文字に斜線を引く
+\RequirePackage{cancel}
+% フォントを変更
+\RequirePackage[%
+  no-math,%
+  deluxe,%
+  expert,%
+  bold,%
+  haranoaji%
+]{luatexja-preset}%
+% テキストにルビを振る
+\RequirePackage{pxrubrica}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    色
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 色を追加
+\RequirePackage{xcolor,luacolor}
+% 色付き囲み環境を追加
+\RequirePackage[most]{tcolorbox}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    タイトル
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 著者と所属
+\RequirePackage[noblocks]{authblk}
+\@ifundefined{chapter}{%
+  \renewcommand{\Affilfont}{\small}%
+}{}
+\renewcommand{\Authsep}{\qquad}
+\renewcommand{\Authand}{\qquad}
+\renewcommand{\Authands}{\qquad}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    概要
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\abstractname{概要}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    目次
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 目次の見出しを変更
+\def\contentsname{目次}
+\def\listfigurename{図目次}
+\def\listtablename{表目次}
+\@ifundefined{chapter}{%
+  \def\frontmattertoclevel{section}
+  \def\backmattertoclevel{section}
+}{%
+  \def\frontmattertoclevel{chapter}
+  \def\backmattertoclevel{chapter}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    本文
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 用語
+\NewDocumentCommand{\term}{s m !d() !O{#2} !O{#4}}{%
+  \IfBooleanF{#1}{%
+    \index{#5}%
+  }%
+  \ifstrempty{#4}{\label{dfn:#2}}{\label{dfn:#4}}%
+  \textbf{#2}%
+  \IfNoValueF{#3}{\nobreak(\textit{#3})}%
+}
+\NewDocumentCommand{\refterm}{m !D(){dfn} !O{#1}}{%
+  \hyperref[#2:#3]{#1}%
+}
+% enumerate環境の見出しを変更
+\renewcommand{\labelenumi}{(\theenumi)}
+\renewcommand{\labelenumii}{(\theenumii)}
+\renewcommand{\labelenumiii}{(\theenumiii)}
+\renewcommand{\labelenumiv}{(\theenumiv)}
+% enumerate環境のアイテムを参照したときに前置する言葉を変更
+\renewcommand{\p@enumii}{\theenumi\nobreak.\nobreak}
+\renewcommand{\p@enumiii}{\p@enumii\theenumii\nobreak.\nobreak}
+\renewcommand{\p@enumiv}{\p@enumiii\theenumiv\nobreak.\nobreak}
+% リスト環境の体裁を変更
+\RequirePackage{enumitem}
+\setlist{%
+  topsep=0.5ex,%
+  align=left,%
+  leftmargin=\parindent,%
+  labelindent=0pt,%
+  labelwidth=0pt,%
+  labelsep=.5em,%
+  itemindent=!%
+}
+% 囲み環境を追加
+\RequirePackage{ascmac}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    付録
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{appendix}
+% 付録の見出しを変更
+\def\appendixname{付録}
+% 付録のページや目次の見出しを変更
+\renewcommand{\appendixpagename}{\appendixname}
+\renewcommand{\appendixtocname}{\appendixname}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    参考文献
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage[%
+  % 引用順に並べ替える
+  citation-order%
+]{amsrefs}
+% 参考文献の見出しを変更
+\def\refname{参考文献}
+\def\bibname{参考文献}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    索引
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{makeidx}
+% 索引の見出しを変更
+\def\indexname{索引}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    画像
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 画像を挿入
+\RequirePackage{graphicx}
+% 画像を強制的に配置
+\RequirePackage{float}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    図
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 図の見出しを変更
+\def\figurename{図}
+\RequirePackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{decorations.pathmorphing, decorations.shapes}
+\usetikzlibrary{graphs, graphs.standard}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    表
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 表の見出しを変更
+\def\tablename{表}
+% 改ページありの表
+\RequirePackage{longtable}
+% セルを縦方向に結合
+\RequirePackage{multirow}
+% セル内で改行
+\RequirePackage{makecell}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    数式全般
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{amsmath}
+% equation環境をgather環境に変更
+\let\equation\gather
+\let\endequation\endgather
+% amsmathの拡張パッケージ
+\RequirePackage{mathtools}
+% 定理環境
+\RequirePackage{amsthm}
+% 式の見出しを変更
+\def\equationname{式}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    数式フォント
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{amssymb}
+% 太字を追加
+\RequirePackage{bm}
+% 数字の黒板太字を追加
+\RequirePackage{bbm}
+% 花文字を追加
+\RequirePackage{mathrsfs}
+% 微積分記号
+\RequirePackage{derivative}
+% ギリシャ文字の一部を再定義
+\newcommand{\eps}{\epsilon}
+\newcommand{\veps}{\varepsilon}
+\newcommand{\vphi}{\varphi}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    数式環境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WithArrows環境を追加
+\RequirePackage{witharrows}
+% WithArrows環境の数式をdisplaystyleで表示
+\WithArrowsOptions{displaystyle}
+% 矢印をすべてintermediateにする
+\WithArrowsOptions{i}
+% 矢印のコメントの文字サイズを変更
+\WithArrowsOptions{tikz={font={\scriptsize}}}
+% 矢印のコメントを折り返す
+\WithArrowsOptions{wrap-lines}
+% 数式環境内で改ページを許可
+\allowdisplaybreaks[1]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    相互参照
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 文書にハイパーリンク機能を加える
+\RequirePackage[%
+  % ドライバーを指定
+  luatex%
+]{hyperref}
+\hypersetup{%
+  % ページサイズを変更しない
+  setpagesize=false,%
+  % テキストとページ数にリンクをつける
+  linktoc=all,%
+  % リンクのテキストに色をつける(印刷時に残るので注意)
+  colorlinks=true,%
+  % PDFのブックマークを作成する
+  bookmarks=true,%
+  % PDFのブックマークをすべて展開して表示
+  bookmarksopen=true,%
+  % PDFのブックマークに番号を含める
+  bookmarksnumbered=true%
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    cleveref
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage[%
+  capitalise,%
+  nameinlink,%
+  noabbrev%
+]{cleveref}
+% 日本語用のフォーマット
+\def\japanese@crefformat#1#2#3{%
+  \crefname{#1}{#2}{#3}
+  \crefformat{#1}%
+    {##2\csname cref@#1@name\endcsname\nobreak##1##3}
+  \crefrangeformat{#1}%
+    {##2\csname cref@#1@name\endcsname\nobreak##1##3\crefrangeconjunction##5\csname cref@#1@name\endcsname\nobreak##4##6}
+  \crefmultiformat{#1}%
+    {##2\csname cref@#1@name\endcsname\nobreak##1##3}%
+    {\crefpairconjunction##2\csname cref@#1@name\endcsname\nobreak##1##3}%
+    {\crefmiddleconjunction##2\csname cref@#1@name\endcsname\nobreak##1##3}%
+    {\creflastconjunction##2\csname cref@#1@name\endcsname\nobreak##1##3}
+  \crefrangemultiformat{#1}%
+    {##2\csname cref@#1@name\endcsname\nobreak##1##3\crefrangeconjunction##5\csname cref@#1@name\endcsname\nobreak##4##6}%
+    {\crefpairgroupconjunction##2\csname cref@#1@name\endcsname\nobreak##1##3\crefrangeconjunction##5\csname cref@#1@name\endcsname\nobreak##4##6}%
+    {\crefmiddlegroupconjunction##2\csname cref@#1@name\endcsname\nobreak##1##3\crefrangeconjunction##5\csname cref@#1@name\endcsname\nobreak##4##6}%
+    {\creflastconjunction##2\csname cref@#1@name\endcsname\nobreak##1##3\creflastgroupconjunction##5\csname cref@#1@name\endcsname\nobreak##4##6}
+}
+% 接続詞
+\newcommand{\crefrangeconjunction}{から\nobreak}
+\newcommand{\crefrangepreconjunction}{}
+\newcommand{\crefrangepostconjunction}{}
+\newcommand{\crefpairconjunction}{と\nobreak}
+\newcommand{\crefmiddleconjunction}{, }
+\newcommand{\creflastconjunction}{, および\nobreak}
+\newcommand{\crefpairgroupconjunction}{と\nobreak}
+\newcommand{\crefmiddlegroupconjunction}{, }
+\newcommand{\creflastgroupconjunction}{, および\nobreak}
+% 見出し
+\crefname{equation}{\equationname}{\equationname}
+\crefformat{equation}%
+  {#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3}
+\crefrangeformat{equation}%
+  {#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3\creflastgroupconjunction#5\cref@equation@name\nobreak(\nobreak#4\nobreak)#6}
+\crefmultiformat{equation}%
+  {#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3}%
+  {\crefpairconjunction#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3}%
+  {\crefmiddleconjunction#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3}%
+  {\creflastconjunction#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3}
+\crefrangemultiformat{equation}%
+  {#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3\creflastgroupconjunction#5\cref@equation@name\nobreak(\nobreak#4\nobreak)#6}%
+  {\crefpairgroupconjunction#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3\creflastgroupconjunction#5\cref@equation@name\nobreak(\nobreak#4\nobreak)#6}%
+  {\crefmiddlegroupconjunction#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3\creflastgroupconjunction#5\cref@equation@name\nobreak(\nobreak#4\nobreak)#6}%
+  {\creflastgroupconjunction#2\cref@equation@name\nobreak(\nobreak#1\nobreak)#3\creflastgroupconjunction#5\cref@equation@name\nobreak(\nobreak#4\nobreak)#6}
+\japanese@crefformat{figure}{\figurename}{\figurename}
+\japanese@crefformat{table}{\tablename}{\tablename}
+% ページ
+\crefformat{page}%
+  {#2#1#3}
+\crefrangeformat{page}%
+  {#2#1#3\textasciitilde#5#4#6}
+\crefmultiformat{page}%
+  {#2#1#3}%
+  {\crefpairconjunction#2#1#3}%
+  {\crefmiddleconjunction#2#1#3}%
+  {\creflastconjunction#2#1#3}
+\crefrangemultiformat{page}%
+  {#2#1#3\textasciitilde#5#4#6}%
+  {\crefpairgroupconjunction#2#1#3\textasciitilde#5#4#6}%
+  {\crefmiddlegroupconjunction#2#1#3\textasciitilde#5#4#6}%
+  {\creflastgroupconjunction#2#1#3\textasciitilde#5#4#6}
+% 部
+\crefformat{part}%
+  {#2第\nobreak#1\nobreak 部#3}
+\crefrangeformat{part}%
+  {#2第\nobreak#1\nobreak 部#3\creflastgroupconjunction#5第\nobreak#4\nobreak 部#6}
+\crefmultiformat{part}%
+  {#2第\nobreak#1\nobreak 部#3}%
+  {\crefpairconjunction#2第\nobreak#1\nobreak 部#3}%
+  {\crefmiddleconjunction#2第\nobreak#1\nobreak 部#3}%
+  {\creflastconjunction#2第\nobreak#1\nobreak 部#3}
+\crefrangemultiformat{part}%
+  {#2第\nobreak#1\nobreak 部#3\creflastgroupconjunction#5第\nobreak#4\nobreak 部#6}%
+  {\crefpairgroupconjunction#2第\nobreak#1\nobreak 部#3\creflastgroupconjunction#5第\nobreak#4\nobreak 部#6}%
+  {\crefmiddlegroupconjunction#2第\nobreak#1\nobreak 部#3\creflastgroupconjunction#5第\nobreak#4\nobreak 部#6}%
+  {\creflastgroupconjunction#2第\nobreak#1\nobreak 部#3\creflastgroupconjunction#5第\nobreak#4\nobreak 部#6}
+% 章
+\crefformat{chapter}%
+  {#2第\nobreak#1\nobreak 章#3}
+\crefrangeformat{chapter}%
+  {#2第\nobreak#1\nobreak 章#3\creflastgroupconjunction#5第\nobreak#4\nobreak 章#6}
+\crefmultiformat{chapter}%
+  {#2第\nobreak#1\nobreak 章#3}%
+  {\crefpairconjunction#2第\nobreak#1\nobreak 章#3}%
+  {\crefmiddleconjunction#2第\nobreak#1\nobreak 章#3}%
+  {\creflastconjunction#2第\nobreak#1\nobreak 章#3}
+\crefrangemultiformat{chapter}%
+  {#2第\nobreak#1\nobreak 章#3\creflastgroupconjunction#5第\nobreak#4\nobreak 章#6}%
+  {\crefpairgroupconjunction#2第\nobreak#1\nobreak 章#3\creflastgroupconjunction#5第\nobreak#4\nobreak 章#6}%
+  {\crefmiddlegroupconjunction#2第\nobreak#1\nobreak 章#3\creflastgroupconjunction#5第\nobreak#4\nobreak 章#6}%
+  {\creflastgroupconjunction#2第\nobreak#1\nobreak 章#3\creflastgroupconjunction#5第\nobreak#4\nobreak 章#6}
+% 節
+\crefformat{section}%
+  {#2第\nobreak#1\nobreak 節#3}
+\crefrangeformat{section}%
+  {#2第\nobreak#1\nobreak 節#3\creflastgroupconjunction#5第\nobreak#4\nobreak 節#6}
+\crefmultiformat{section}%
+  {#2第\nobreak#1\nobreak 節#3}%
+  {\crefpairconjunction#2第\nobreak#1\nobreak 節#3}%
+  {\crefmiddleconjunction#2第\nobreak#1\nobreak 節#3}%
+  {\creflastconjunction#2第\nobreak#1\nobreak 節#3}
+\crefrangemultiformat{section}%
+  {#2第\nobreak#1\nobreak 節#3\creflastgroupconjunction#5第\nobreak#4\nobreak 節#6}%
+  {\crefpairgroupconjunction#2第\nobreak#1\nobreak 節#3\creflastgroupconjunction#5第\nobreak#4\nobreak 節#6}%
+  {\crefmiddlegroupconjunction#2第\nobreak#1\nobreak 節#3\creflastgroupconjunction#5第\nobreak#4\nobreak 節#6}%
+  {\creflastgroupconjunction#2第\nobreak#1\nobreak 節#3\creflastgroupconjunction#5第\nobreak#4\nobreak 節#6}
+% 項
+\crefformat{subsection}%
+  {#2第\nobreak#1\nobreak 項#3}
+\crefrangeformat{subsection}%
+  {#2第\nobreak#1\nobreak 項#3\creflastgroupconjunction#5第\nobreak#4\nobreak 項#6}
+\crefmultiformat{subsection}%
+  {#2第\nobreak#1\nobreak 項#3}%
+  {\crefpairconjunction#2第\nobreak#1\nobreak 項#3}%
+  {\crefmiddleconjunction#2第\nobreak#1\nobreak 項#3}%
+  {\creflastconjunction#2第\nobreak#1\nobreak 項#3}
+\crefrangemultiformat{subsection}%
+  {#2第\nobreak#1\nobreak 項#3\creflastgroupconjunction#5第\nobreak#4\nobreak 項#6}%
+  {\crefpairgroupconjunction#2第\nobreak#1\nobreak 項#3\creflastgroupconjunction#5第\nobreak#4\nobreak 項#6}%
+  {\crefmiddlegroupconjunction#2第\nobreak#1\nobreak 項#3\creflastgroupconjunction#5第\nobreak#4\nobreak 項#6}%
+  {\creflastgroupconjunction#2第\nobreak#1\nobreak 項#3\creflastgroupconjunction#5第\nobreak#4\nobreak 項#6}
+% 目
+\crefformat{subsubsection}%
+  {#2第\nobreak#1\nobreak 目#3}
+\crefrangeformat{subsubsection}%
+  {#2第\nobreak#1\nobreak 目#3\creflastgroupconjunction#5第\nobreak#4\nobreak 目#6}
+\crefmultiformat{subsubsection}%
+  {#2第\nobreak#1\nobreak 目#3}%
+  {\crefpairconjunction#2第\nobreak#1\nobreak 目#3}%
+  {\crefmiddleconjunction#2第\nobreak#1\nobreak 目#3}%
+  {\creflastconjunction#2第\nobreak#1\nobreak 目#3}
+\crefrangemultiformat{subsubsection}%
+  {#2第\nobreak#1\nobreak 目#3\creflastgroupconjunction#5第\nobreak#4\nobreak 目#6}%
+  {\crefpairgroupconjunction#2第\nobreak#1\nobreak 目#3\creflastgroupconjunction#5第\nobreak#4\nobreak 目#6}%
+  {\crefmiddlegroupconjunction#2第\nobreak#1\nobreak 目#3\creflastgroupconjunction#5第\nobreak#4\nobreak 目#6}%
+  {\creflastgroupconjunction#2第\nobreak#1\nobreak 目#3\creflastgroupconjunction#5第\nobreak#4\nobreak 目#6}
+% 付録
+\japanese@crefformat{appendix}{\appendixname}{\equationname}
+% 箇条書き
+\crefformat{enumi}%
+  {#2(\nobreak#1\nobreak)#3}
+\crefrangeformat{enumi}%
+  {#2(\nobreak#1\nobreak)#3\creflastgroupconjunction#5(\nobreak#4\nobreak)#6}
+\crefmultiformat{enumi}%
+  {#2(\nobreak#1\nobreak)#3}%
+  {\crefpairconjunction#2(\nobreak#1\nobreak)#3}%
+  {\crefmiddleconjunction#2(\nobreak#1\nobreak)#3}%
+  {\creflastconjunction#2(\nobreak#1\nobreak)#3}
+\crefrangemultiformat{enumi}%
+  {#2(\nobreak#1\nobreak)#3\creflastgroupconjunction#5(\nobreak#4\nobreak)#6}%
+  {\crefpairgroupconjunction#2(\nobreak#1\nobreak)#3\creflastgroupconjunction#5(\nobreak#4\nobreak)#6}%
+  {\crefmiddlegroupconjunction#2(\nobreak#1\nobreak)#3\creflastgroupconjunction#5(\nobreak#4\nobreak)#6}%
+  {\creflastgroupconjunction#2(\nobreak#1\nobreak)#3\creflastgroupconjunction#5(\nobreak#4\nobreak)#6}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    定理環境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 定理環境の名称を定義
+\def\theorem@name{定理}
+\def\lemma@name{補題}
+\def\proposition@name{命題}
+\def\corollary@name{系}
+\def\conjecture@name{予想}
+\def\definition@name{定義}
+\def\example@name{例}
+\def\exercise@name{問題}
+\def\setting@name{設定}
+\def\assumption@name{仮定}
+\def\remark@name{注意}
+\def\observation@name{観察}
+\def\note@name{Note}
+\def\tip@name{Tip}
+% 見出し
+\crefname{appendix}{\appendixname}{\appendixname}
+% 定理環境や証明環境を追加
+\if@myjapanese@colored\else
+  \NewDocumentCommand{\newmytheorem}{ s m o m o D(){#4} D(){#6} }{%
+    \IfBooleanTF{#1}%
+      {%
+        \newtheorem*{mytheorem@#2}{#4}
+        \NewDocumentEnvironment{#2}{ !o }{%
+          \IfValueTF{##1}{\csname mytheorem@#2\endcsname[##1]}{\csname mytheorem@#2\endcsname}%
+          \leavevmode%
+        }{\csname endmytheorem@#2\endcsname}
+      }%
+      {%
+        \japanese@crefformat{mytheorem@#2}{#6}{#7}
+        \IfNoValueTF{#3}%
+          {\IfNoValueTF{#5}%
+            {\newtheorem{mytheorem@#2}{#4}}%
+            {\newtheorem{mytheorem@#2}{#4}[#5]}
+          }%
+          {\IfNoValueTF{#5}%
+            {\newtheorem{mytheorem@#2}[mytheorem@#3]{#4}}%
+            {\newtheorem{mytheorem@#2}[mytheorem@#3]{#4}[#5]}
+          }
+        \NewDocumentEnvironment{#2}{ !o !D(){##1} }{%
+          \IfValueTF{##1}{\csname mytheorem@#2\endcsname[##1]}{\csname mytheorem@#2\endcsname}
+          \IfNoValueF{##2}{\label{#2:##2}}\leavevmode%
+        }{\csname endmytheorem@#2\endcsname}
+      }
+  }
+  \newtheoremstyle{japanese}%
+    {}{}%
+    {\normalfont}{}{\bfseries}{.}{ }%
+    {\thmname{#1}\thmnumber{\nobreak#2}\thmnote{\nobreakspace(#3)}}
+
+  \theoremstyle{japanese}
+  \newmytheorem{thm}{\theorem@name}[section]
+  \newmytheorem*{thm*}{\theorem@name}
+  \newmytheorem{lem}[thm]{\lemma@name}
+  \newmytheorem*{lem*}{\lemma@name}
+  \newmytheorem{prop}[thm]{\proposition@name}
+  \newmytheorem*{prop*}{\proposition@name}
+  \newmytheorem{cor}[thm]{\corollary@name}
+  \newmytheorem*{cor*}{\corollary@name}
+  \newmytheorem{conj}[thm]{\conjecture@name}
+  \newmytheorem*{conj*}{\conjecture@name}
+  \newmytheorem{dfn}[thm]{\definition@name}
+  \newmytheorem*{dfn*}{\definition@name}
+  \newmytheorem{exm}[thm]{\example@name}
+  \newmytheorem*{exm*}{\example@name}
+  \newmytheorem{ex}[thm]{\exercise@name}
+  \newmytheorem*{ex*}{\exercise@name}
+  \newmytheorem{setting}[thm]{\setting@name}
+  \newmytheorem*{setting*}{\setting@name}
+  \newmytheorem{ass}[thm]{\assumption@name}
+  \newmytheorem*{ass*}{\assumption@name}
+  \newmytheorem{rmk}[thm]{\remark@name}
+  \newmytheorem*{rmk*}{\remark@name}
+  \newmytheorem{obs}[thm]{\observation@name}
+  \newmytheorem*{obs*}{\observation@name}
+  \newmytheorem{note}[thm]{\note@name}(Note\nobreakspace)(Notes\nobreakspace)
+  \newmytheorem*{note*}{\note@name}
+  \newmytheorem{tip}[thm]{\tip@name}(Tip\nobreakspace)(Tips\nobreakspace)
+  \newmytheorem*{tip*}{\tip@name}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    証明環境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 証明環境の見出しのフォントをbfseriesに変更
+\renewenvironment{proof}[1][\proofname]{\par
+  \pushQED{\qed}%
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+  \item[\hskip\labelsep
+              \bfseries
+              #1\@addpunct{.}]\ignorespaces\leavevmode
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+% 証明環境の見出しを変更
+\def\proofname{証明}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    色付き定理環境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if@myjapanese@colored
+  % newtcbtheoremとrenewtcbtheoremを再定義
+  \ExplSyntaxOn
+    \RenewDocumentCommand \__tcobox_new_tcbtheorem:w { m O{} m m +m m }
+      {
+        #1 [auto~counter,#2]{#3}{~O{}~D(){##1}~D<>{}~}
+          {
+            #5,
+            title      = {\__tcobox_theo_title:nnn{#4}{\thetcbcounter}{##1}},
+            list~entry = {\protect\numberline{\thetcbcounter}##1},
+            nameref    = {##1},
+            theo@label = {#6}{##2},
+            ##3
+          }
+        #1 [#2,no~counter,list~inside=]{#3*}{~O{}~D<>{}~}
+          {
+            #5,
+            title = {\__tcobox_theo_title:nnn{#4}{}{##1}},
+            ##2
+          }
+      }
+
+
+    \RenewDocumentCommand \newtcbtheorem {}
+      {
+        \__tcobox_new_tcbtheorem:w \NewTColorBox
+      }
+
+
+    \RenewDocumentCommand \renewtcbtheorem {}
+      {
+        \__tcobox_new_tcbtheorem:w \RenewTColorBox
+      }
+  \ExplSyntaxOff
+  \tcbset{basic/.style=%
+    {%
+      enhanced,%
+      enforce breakable,%
+      top=0pt,%
+      bottom=0pt,%
+      left=0pt,%
+      right=0pt,%
+      boxrule=0pt,%
+      frame hidden,%
+      no shadow,%
+      no borderline,%
+      colback=white,%
+      boxsep=0pt,%
+      arc=0pt%
+    }%
+  }
+  \tcbset{mytheorem/.style=%
+    {%
+      enhanced,%
+      enforce breakable,%
+      fontupper=\normalfont,%
+      fontlower=\normalfont,%
+      fonttitle=\bfseries,%
+      leftrule=0pt,%
+      rightrule=0pt,%
+      sharp corners=all,%
+      no shadow,%
+    }
+  }
+  \newtcbtheorem[number within=section,crefname={\theorem@name}{\theorem@name}]{thm}{\theorem@name}{%
+    mytheorem,%
+    colframe=red!75!black,%
+    colback=red!5!white,%
+  }{thm}
+  \newtcbtheorem[use counter from=thm,crefname={\lemma@name}{\lemma@name}]{lem}{\lemma@name}{%
+    mytheorem,%
+    colframe=red!50!yellow!75!black,%
+    colback=red!50!yellow!5!white,%
+  }{lem}
+  \newtcbtheorem[use counter from=thm,crefname={\proposition@name}{\proposition@name}]{prop}{\proposition@name}{%
+    mytheorem,%
+    colframe=green!75!black,%
+    colback=green!5!white,%
+  }{prop}
+  \newtcbtheorem[use counter from=thm,crefname={\corollary@name}{\corollary@name}]{cor}{\corollary@name}{%
+    mytheorem,%
+    colframe=magenta!75!black,%
+    colback=magenta!5!white,%
+  }{cor}
+  \newtcbtheorem[use counter from=thm,crefname={\conjecture@name}{\conjecture@name}]{conj}{\conjecture@name}{%
+    mytheorem,%
+  }{conj}
+  \newtcbtheorem[use counter from=thm,crefname={\definition@name}{\definition@name}]{dfn}{\definition@name}{%
+    mytheorem,%
+    colframe=blue!75!black,%
+    colback=blue!5!white,%
+  }{dfn}
+  \newtcbtheorem[use counter from=thm,crefname={\example@name}{\example@name}]{exm}{\example@name}{%
+    mytheorem,%
+  }{exm}
+  \newtcbtheorem[use counter from=thm,crefname={\exercise@name}{\exercise@name}]{ex}{\exercise@name}{%
+    mytheorem,%
+  }{ex}
+  \newtcbtheorem[use counter from=thm,crefname={\setting@name}{\setting@name}]{setting}{\setting@name}{%
+    mytheorem,%
+  }{setting}
+  \newtcbtheorem[use counter from=thm,crefname={\assumption@name}{\assumption@name}]{ass}{\assumption@name}{%
+    mytheorem,%
+  }{ass}
+  \newtcbtheorem[use counter from=thm,crefname={\remark@name}{\remark@name}]{rmk}{\remark@name}{%
+    mytheorem,%
+  }{rmk}
+  \newtcbtheorem[use counter from=thm,crefname={\observation@name}{\observation@name}]{obs}{\observation@name}{%
+    mytheorem,%
+  }{obs}
+  \newtcbtheorem[use counter from=thm,crefname={\note@name\nobreakspace}{Tips\nobreakspace}]{note}{\note@name}{%
+    mytheorem,%
+  }{note}
+  \newtcbtheorem[use counter from=thm,crefname={\tip@name\nobreakspace}{Tips\nobreakspace}]{tip}{\tip@name}{%
+    mytheorem,%
+  }{tip}
+  \tcolorboxenvironment{proof}{%
+    basic,%
+    top=1ex,%
+    bottom=1ex,%
+    grow to left by=0.5em,%
+    borderline west={1pt}{0pt}{black!50,dotted},%
+    left*=0pt%
+  }%
+\fi
