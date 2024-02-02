@@ -1,0 +1,59 @@
+\documentclass[lualatex,a4j,12pt]{mybook-ja}
+  % 数学
+    % すべての数式をdisplaystyleで表示
+    %\everymath{\displaystyle}
+  % 前付と後付の目次レベル
+    %\renewcommand{\frontmattertoclevel}{part}
+    %\renewcommand{\backmattertoclevel}{part}
+  % 索引
+    %\makeindex
+  % ハイパーリンク
+    \hypersetup{%
+      % ページ数にリンクをつけない(テキストのみにリンクをつける)
+      %linktoc=section,%
+      % リンクに枠をつける(印刷時に残らない)
+      %colorlinks=false,%
+      % リンクの色をすべて変更
+      %allcolors=blue,%
+      % リンクに色や枠をつけない
+      %hidelinks=true,%
+      % PDFのブックマークを展開せず表示
+      %bookmarksopen=false,%
+    }
+  % 省略記法
+\begin{document}
+  % レイアウト確認ページ
+    %\layout
+  % タイトル
+    \renewcommand{\thepage}{C\arabic{page}}
+    \thispagestyle{empty}
+    \begin{titlepage}
+      \title{\Huge\bfseries }
+      \author[1]{}
+      \affil[1]{}
+      \date{\today}
+      \maketitle
+    \end{titlepage}
+  % 目次
+    \frontmatter
+    \phantomsection
+    \addcontentsline{toc}{\frontmattertoclevel}{\contentsname}
+    \tableofcontents
+  % 本文
+    \mainmatter
+    
+  % 付録
+    %\part*{\appendixpagename}
+    %\appendix
+    %\titleformat{\chapter}[display]{\Huge\bfseries}{\LARGE \appendixname \thechapter}{0em}{}
+  % 参考文献
+    %\backmatter
+    %\phantomsection
+    %\addcontentsline{toc}{\backmattertoclevel}{\bibname}
+    %\bibliography{book-ja,book-en,paper}
+  % 索引
+    %\cleardoublepage
+    %\phantomsection
+    %\addcontentsline{toc}{\backmattertoclevel}{\indexname}
+    %\printindex
+\end{document}

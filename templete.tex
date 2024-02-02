@@ -1,0 +1,52 @@
+\documentclass[lualatex,a4j,12pt]{myarticle-ja}
+  % 数学
+    % すべての数式をdisplaystyleで表示
+    %\everymath{\displaystyle}
+  % 前付と後付の目次レベル
+    %\renewcommand{\frontmattertoclevel}{part}
+    %\renewcommand{\backmattertoclevel}{part}
+  % 索引
+    %\makeindex
+  % ハイパーリンク
+    \hypersetup{%
+      % ページ数にリンクをつけない(テキストのみにリンクをつける)
+      %linktoc=section,%
+      % リンクに枠をつける(印刷時に残らない)
+      %colorlinks=false,%
+      % リンクの色をすべて変更
+      %allcolors=blue,%
+      % リンクに色や枠をつけない
+      %hidelinks=true,%
+      % PDFのブックマークを展開せず表示
+      %bookmarksopen=false,%
+    }
+  % 省略記法
+\begin{document}
+  % レイアウト確認ページ
+    %\layout
+  % タイトル
+    \title{}
+    \author[1]{}
+    \affil[1]{}
+    \date{\today}
+    \maketitle
+  % 目次
+    %\phantomsection
+    %\addcontentsline{toc}{\frontmattertoclevel}{\contentsname}
+    %\tableofcontents
+  % 本文
+    
+  % 付録
+    %\phantomsection
+    %\addcontentsline{toc}{\backmattertoclevel}{\appendixtocname}
+    %\appendix
+    %\renewcommand{\thesection}{\Alph{section}}
+  % 参考文献
+    %\phantomsection
+    %\addcontentsline{toc}{\backmattertoclevel}{\bibname}
+    %\bibliography{book-ja,book-en,paper}
+  % 索引
+    %\phantomsection
+    %\addcontentsline{toc}{\backmattertoclevel}{\indexname}
+    %\printindex
+\end{document}
